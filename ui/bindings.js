@@ -448,7 +448,6 @@ export function bindModalEvents() {
         });
     });
     
-    displayDailyAuthCode(); 
     function updateModelInputView() {
         const settings = extension_settings[extensionName] || {};
         const forceProxy = settings.forceProxyForCustomApi === true;
