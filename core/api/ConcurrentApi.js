@@ -15,11 +15,6 @@ function getConcurrentApiSettings() {
 }
 
 export async function callConcurrentAI(messages, options = {}) {
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-Concurrent制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return null;
-    }
-
     const apiSettings = getConcurrentApiSettings();
 
     const finalOptions = {

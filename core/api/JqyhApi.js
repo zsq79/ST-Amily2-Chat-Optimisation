@@ -55,11 +55,6 @@ export function getJqyhApiSettings() {
 }
 
 export async function callJqyhAI(messages, options = {}) {
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-Jqyh制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return null;
-    }
-
     const apiSettings = getJqyhApiSettings();
 
     const finalOptions = {

@@ -664,8 +664,6 @@ export async function callCustomOpenAI(messages) {
 
         console.groupCollapsed(`[CWB] API Call @ ${new Date().toLocaleTimeString()}`);
         console.log('Request URL:', fullApiUrl);
-        console.log('Request Headers:', headers);
-        console.log('Request Body:', requestBody);
 
         try {
             const response = await fetch(fullApiUrl, {

@@ -12,10 +12,9 @@ import {
     fillWithSecondaryApi,
     renderTables,
     log,
-    checkForUpdates, fetchMessageBoardContent,
+    checkForUpdates,
     setUpdateInfo, applyUpdateIndicator,
     pluginVersion, extensionName, defaultSettings,
-    checkAuthorization, refreshUserInfo,
     tableSystemDefaultSettings,
     manageLorebookEntriesForChat,
     initializeCharacterWorldBook,
@@ -221,72 +220,6 @@ async function handleUpdateCheck() {
     }
 }
 
-function sanitizeHTML(html) {
-    if (window.DOMPurify) {
-        return window.DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['b', 'i', 'u', 'em', 'strong', 'a', 'p', 'br', 'span', 'div', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'font', 'blockquote', 'code', 'pre', 'hr', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-            ALLOWED_ATTR: ['href', 'target', 'style', 'class', 'color', 'size', 'src', 'alt', 'title', 'width', 'height', 'align'],
-            FORBID_TAGS: ['script', 'style', 'iframe', 'frame', 'object', 'embed', 'form', 'input', 'textarea', 'button', 'select', 'option'],
-            FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousedown', 'onmouseup', 'ondblclick', 'onkeydown', 'onkeypress', 'onkeyup', 'onfocus', 'onblur', 'onchange', 'onsubmit', 'onreset', 'onselect', 'oncontextmenu'],
-            ADD_ATTR: ['target'],
-        });
-    }
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-
-    const allowedTags = ['b', 'i', 'u', 'em', 'strong', 'a', 'p', 'br', 'span', 'div', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'font'];
-    const allowedAttrs = ['href', 'target', 'style', 'class', 'color', 'size'];
-
-    const elements = tempDiv.querySelectorAll('*');
-    const allElements = tempDiv.getElementsByTagName('*');
-    for (let i = allElements.length - 1; i >= 0; i--) {
-        const el = allElements[i];
-        const tagName = el.tagName.toLowerCase();
-        
-        if (!allowedTags.includes(tagName)) {
-            el.parentNode.removeChild(el);
-            continue;
-        }
-
-        // 移除所有属性，只保留允许的
-        const attrs = Array.from(el.attributes);
-        for (const attr of attrs) {
-            const attrName = attr.name.toLowerCase();
-            if (!allowedAttrs.includes(attrName)) {
-                el.removeAttribute(attr.name);
-            } else if (attrName === 'href') {
-                // 检查 href 是否包含 javascript:
-                if (attr.value.toLowerCase().trim().startsWith('javascript:')) {
-                    el.removeAttribute('href');
-                }
-            } else if (attrName.startsWith('on')) { // 双重保险，移除所有事件处理器
-                el.removeAttribute(attr.name);
-            }
-        }
-    }
-    return tempDiv.innerHTML;
-}
-
-async function handleMessageBoard() {
-    const updateMessage = async () => {
-        try {
-            const messageData = await fetchMessageBoardContent();
-            if (messageData && messageData.message) {
-                const messageBoard = $('#amily2_message_board');
-                const messageContent = $('#amily2_message_content');
-                // 使用净化后的 HTML，防止 XSS 攻击
-                const safeContent = sanitizeHTML(messageData.message);
-                messageContent.html(safeContent); 
-                messageBoard.show();
-                console.log("【Amily2号-内务府】已成功获取并展示来自陛下的最新圣谕。");
-            }
-        } catch (error) {
-            console.error("【Amily2号-内务府】获取留言板失败:", error);
-        }
-    };
-    await updateMessage();
-    setInterval(updateMessage, 300000); // 5分钟刷新一次（从60秒改为300秒）
-}
 
 
 
@@ -848,17 +781,7 @@ function initializeRagAndInjection() {
  */
 function performPostDeploymentTasks() {
     console.log("【Amily2号】帝国秩序已完美建立。Amily2号的府邸已恭候陛下的莅临。");
-    if (checkAuthorization()) {
-        const userType = localStorage.getItem("plugin_user_type") || "未知";
-        const userNote = localStorage.getItem("plugin_user_note");
-        const displayNote = userNote || userType;
-        toastr.success(`欢迎回来！授权状态有效 (用户: ${displayNote})`, "Amily2 插件已就绪");
-        refreshUserInfo().then(data => {
-            if (data && data.note && data.note !== userNote) {
-                console.log("[Amily2] 用户信息已更新:", data.note);
-            }
-        }).catch(e => console.warn("[Amily2] 后台刷新用户信息失败:", e));
-    }
+    toastr.success("欢迎回来！", "Amily2 插件已就绪");
 
     console.log("[Amily2号-开国大典] 步骤七：初始化版本显示系统...");
     if (typeof window.amily2Updater !== 'undefined') {
@@ -871,8 +794,6 @@ function performPostDeploymentTasks() {
     }
 
     handleUpdateCheck();
-    handleMessageBoard();
-    initializeOnlineTracker();
     initializeLocalLinkage();
 
     setTimeout(() => initializeSuperMemory(), 3000);
@@ -992,105 +913,6 @@ function applyMessageLimit() {
 eventSource.on(event_types.MESSAGE_RECEIVED, () => setTimeout(applyMessageLimit, 100));
 eventSource.on(event_types.chat_updated, () => setTimeout(applyMessageLimit, 100));
 
-function initializeOnlineTracker() {
-    const wsUrl = 'wss://amilyservice.amily49.cc';
-    
-    let ws = null;
-    let reconnectTimer = null;
-    let isConnecting = false;
-    
-    function mountTracker() {
-        const $drawerContent = $('#amily2_drawer_content');
-        if ($drawerContent.length === 0 || !$drawerContent.data('initialized')) {
-            setTimeout(mountTracker, 1000); 
-            return;
-        }
-        if ($('#amily2-online-tracker').length > 0) return;
-        const $container = $('<div id="amily2-online-tracker" style="text-align: center; padding: 8px; font-size: 13px; color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; background: rgba(0,0,0,0.1); border-radius: 5px;"></div>');
-        $container.html('<i class="fas fa-users" style="color: #4caf50; font-size: 12px; vertical-align: middle; margin-right: 6px;"></i><span id="amily2-online-count" style="vertical-align: middle; font-weight: bold;">Connecting...</span>');
-
-        $drawerContent.prepend($container);
-        
-        connect();
-    }
-
-    function connect() {
-        // 单例模式检查：如果已有连接且处于连接中或打开状态，则不重复创建
-        if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
-            console.log('[Amily2-在线统计] 连接已存在，跳过创建');
-            return;
-        }
-
-        // 防止短时间内重复调用
-        if (isConnecting) return;
-        isConnecting = true;
-
-        // 清理旧连接
-        if (ws) {
-            try {
-                ws.close();
-            } catch (e) {}
-            ws = null;
-        }
-
-        try {
-            console.log('[Amily2-在线统计] 开始建立连接...');
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('[Amily2-在线统计] 已连接到服务器');
-                isConnecting = false;
-                if (reconnectTimer) {
-                    clearTimeout(reconnectTimer);
-                    reconnectTimer = null;
-                }
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'online_count') {
-                        $('#amily2-online-count').text(`${data.count} 人在线`);
-                    }
-                } catch (e) {
-                    console.error('[Amily2-在线统计] 解析消息失败:', e);
-                }
-            };
-
-            ws.onclose = () => {
-                console.log('[Amily2-在线统计] 连接断开');
-                $('#amily2-online-count').text('离线');
-                isConnecting = false;
-                ws = null;
-                
-                // 延迟重连，而不是立即循环
-                if (!reconnectTimer) {
-                    reconnectTimer = setTimeout(() => {
-                        reconnectTimer = null;
-                        connect();
-                    }, 5000);
-                }
-            };
-            
-            ws.onerror = (err) => {
-                console.warn('[Amily2-在线统计] 连接错误:', err);
-                // onerror 通常会触发 onclose，所以这里不需要额外的重连逻辑，交给 onclose 处理
-            };
-        } catch (e) {
-            console.error('[Amily2-在线统计] 初始化失败:', e);
-            isConnecting = false;
-            if (!reconnectTimer) {
-                reconnectTimer = setTimeout(() => {
-                    reconnectTimer = null;
-                    connect();
-                }, 5000);
-            }
-        }
-    }
-
-    // 启动挂载流程
-    mountTracker();
-}
 
 function initializeLocalLinkage() {
     const wsUrl = 'ws://127.0.0.1:2086';

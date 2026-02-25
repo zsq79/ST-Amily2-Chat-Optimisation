@@ -1,7 +1,6 @@
 import { extension_settings, getContext } from "/scripts/extensions.js";
 import { characters, this_chid, getRequestHeaders, saveSettingsDebounced, eventSource, event_types } from "/script.js";
 import { defaultSettings, extensionName, saveSettings } from "../utils/settings.js";
-import { pluginAuthStatus, activatePluginAuthorization, getPasswordForDate } from "../utils/auth.js";
 import { fetchModels, testApiConnection } from "../core/api.js";
 import { getJqyhApiSettings, testJqyhApiConnection, fetchJqyhModels } from '../core/api/JqyhApi.js';
 import { testConcurrentApiConnection, fetchConcurrentModels } from '../core/api/ConcurrentApi.js';
@@ -14,26 +13,6 @@ import { messageFormatting } from '/script.js';
 import { executeManualCommand } from '../core/autoHideManager.js';
 import { showContentModal, showHtmlModal } from './page-window.js';
 import { openAutoCharCardWindow } from '../core/auto-char-card/ui-bindings.js';
-
-function displayDailyAuthCode() {
-    const displayEl = document.getElementById('amily2_daily_code_display');
-    const copyBtn = document.getElementById('amily2_copy_daily_code');
-
-    if (displayEl && copyBtn) {
-        const todayCode = getPasswordForDate(new Date());
-        displayEl.textContent = todayCode;
-
-        if(copyBtn) copyBtn.style.display = 'inline-block';
-
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(todayCode).then(() => {
-                toastr.success('授权码已复制到剪贴板！');
-            }, () => {
-                toastr.error('复制失败，请手动复制。');
-            });
-        };
-    }
-}
 
 
 async function loadSillyTavernPresets() {
@@ -509,8 +488,7 @@ export function bindModalEvents() {
     container
         .off("change.amily2.force_proxy")
         .on("change.amily2.force_proxy", '#amily2_force_proxy', function () {
-            if (!pluginAuthStatus.authorized) return;
-            updateAndSaveSetting('forceProxyForCustomApi', this.checked);
+                    updateAndSaveSetting('forceProxyForCustomApi', this.checked);
             updateModelInputView();
 
             $('#amily2_refresh_models').trigger('click');
@@ -518,22 +496,10 @@ export function bindModalEvents() {
     container
         .off("change.amily2.manual_model")
         .on("change.amily2.manual_model", '#amily2_manual_model_input', function() {
-            if (!pluginAuthStatus.authorized) return;
-            updateAndSaveSetting('model', this.value);
+                    updateAndSaveSetting('model', this.value);
             toastr.success(`模型ID [${this.value}] 已自动保存!`, "Amily2号");
         });
 
-
-    container
-        .off("click.amily2.auth")
-        .on("click.amily2.auth", "#auth_submit", async function () {
-            const authCode = $("#amily2_auth_code").val().trim();
-            if (authCode) {
-                await activatePluginAuthorization(authCode);
-            } else {
-                toastr.warning("请输入授权码", "Amily2号");
-            }
-        });
 
     container
         .off("click.amily2.actions")
@@ -541,8 +507,7 @@ export function bindModalEvents() {
             "click.amily2.actions",
             "#amily2_refresh_models, #amily2_test_api_connection, #amily2_test, #amily2_fix_now",
             async function () {
-                if (!pluginAuthStatus.authorized) return;
-                const button = $(this);
+                            const button = $(this);
                 const originalHtml = button.html();
                 button
                     .prop("disabled", true)
@@ -660,8 +625,7 @@ export function bindModalEvents() {
     container
         .off("click.amily2.expand_editor")
         .on("click.amily2.expand_editor", "#amily2_expand_editor", function (event) {
-            if (!pluginAuthStatus.authorized) return;
-            event.stopPropagation();
+                    event.stopPropagation();
             const selectedKey = $("#amily2_prompt_selector").val();
             const currentContent = $("#amily2_unified_editor").val();
             const dialogHtml = `
@@ -690,8 +654,7 @@ export function bindModalEvents() {
     container
         .off("click.amily2.tutorial")
         .on("click.amily2.tutorial", "#amily2_open_tutorial, #amily2_open_neige_tutorial", function() {
-            if (!pluginAuthStatus.authorized) return;
-
+        
             const tutorials = {
                 "amily2_open_tutorial": {
                     title: "主殿使用教程",
@@ -706,26 +669,6 @@ export function bindModalEvents() {
             const tutorial = tutorials[this.id];
             if (tutorial) {
                 showContentModal(tutorial.title, tutorial.url);
-            }
-        });
-
-    container
-        .off("click.amily2.reset_auth")
-        .on("click.amily2.reset_auth", "#amily2_reset_auth", function() {
-            if (!pluginAuthStatus.authorized) return;
-            
-            if (confirm("确定要清除本地授权码吗？\n这将使您的授权失效，需要重新验证。\n\n这通常用于：\n1. 升级为高级用户\n2. 解决授权异常问题")) {
-                localStorage.removeItem("plugin_auth_code");
-                localStorage.removeItem("plugin_activated");
-                localStorage.removeItem("plugin_auto_login");
-                localStorage.removeItem("plugin_user_type");
-                localStorage.removeItem("plugin_valid_until");
-                
-                toastr.success("授权已清除，即将重新加载以生效...", "Amily2号");
-                
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
             }
         });
 
@@ -768,8 +711,7 @@ export function bindModalEvents() {
             "click.amily2.manual_command",
             "#amily2_unhide_all_button, #amily2_manual_hide_confirm, #amily2_manual_unhide_confirm",
             async function () {
-                if (!pluginAuthStatus.authorized) return;
-
+            
                 const buttonId = this.id;
                 let commandType = '';
                 let params = {};
@@ -806,8 +748,7 @@ export function bindModalEvents() {
         .off("click.amily2.chamber_nav")
         .on("click.amily2.chamber_nav",
              "#amily2_open_text_optimization, #amily2_open_plot_optimization, #amily2_open_additional_features, #amily2_open_rag_palace, #amily2_open_memorisation_forms, #amily2_open_character_world_book, #amily2_open_world_editor, #amily2_open_glossary, #amily2_open_renderer, #amily2_open_super_memory, #amily2_open_auto_char_card, #amily2_back_to_main_settings, #amily2_back_to_main_from_hanlinyuan, #amily2_back_to_main_from_forms, #amily2_back_to_main_from_optimization, #amily2_back_to_main_from_text_optimization, #amily2_back_to_main_from_cwb, #amily2_back_to_main_from_world_editor, #amily2_back_to_main_from_glossary, #amily2_renderer_back_button, #amily2_back_to_main_from_super_memory", function () {
-        if (!pluginAuthStatus.authorized) return;
-
+    
         const mainPanel = container.find('.plugin-features');
         const additionalPanel = container.find('#amily2_additional_features_panel');
         const hanlinyuanPanel = container.find('#amily2_hanlinyuan_panel');
@@ -837,12 +778,6 @@ export function bindModalEvents() {
                 textOptimizationPanel.show();
                 break;
             case 'amily2_open_super_memory':
-                const userType = parseInt(localStorage.getItem("plugin_user_type") || "0");
-                if (userType < 2) {
-                    toastr.warning("此功能为内测功能，仅限我看顺眼的用户使用。", "权限不足");
-                    mainPanel.show();
-                    return;
-                }
                 superMemoryPanel.show();
                 break;
             case 'amily2_open_auto_char_card':
@@ -896,8 +831,7 @@ export function bindModalEvents() {
             "change.amily2.checkbox",
             'input[type="checkbox"][id^="amily2_"]:not([id^="amily2_wb_enabled"]):not(#amily2_sybd_enabled)',
             function (event) {
-                if (!pluginAuthStatus.authorized) return;
-
+            
                 const elementId = this.id;
                 const mainToggle = $(this);
                 const key = snakeToCamel(elementId.replace("amily2_", ""));
@@ -964,8 +898,7 @@ export function bindModalEvents() {
             "change.amily2.radio",
             'input[type="radio"][name^="amily2_"]:not([name="amily2_icon_location"]):not([name="amily2_wb_source"])', 
             function () {
-                if (!pluginAuthStatus.authorized) return;
-                const key = snakeToCamel(this.name.replace("amily2_", ""));
+                            const key = snakeToCamel(this.name.replace("amily2_", ""));
                 const value = $(`input[name="${this.name}"]:checked`).val();
                 updateAndSaveSetting(key, value);
             },
@@ -974,8 +907,7 @@ export function bindModalEvents() {
     container
         .off("change.amily2.api_provider")
         .on("change.amily2.api_provider", "#amily2_api_provider", function () {
-            if (!pluginAuthStatus.authorized) return;
-            
+                    
             const provider = $(this).val();
             console.log(`[Amily2号-UI] API提供商切换为: ${provider}`);
 
@@ -1028,8 +960,7 @@ export function bindModalEvents() {
     container
         .off("change.amily2.text")
         .on("change.amily2.text", "#amily2_api_url, #amily2_api_key, #amily2_optimization_target_tag", function () {
-            if (!pluginAuthStatus.authorized) return;
-            const key = snakeToCamel(this.id.replace("amily2_", ""));
+                    const key = snakeToCamel(this.id.replace("amily2_", ""));
             updateAndSaveSetting(key, this.value);
             toastr.success(`配置 [${key}] 已自动保存!`, "Amily2号");
         });
@@ -1037,8 +968,7 @@ export function bindModalEvents() {
     container
         .off("change.amily2.select")
         .on("change.amily2.select", "select#amily2_model, select#amily2_preset_selector", function () {
-            if (!pluginAuthStatus.authorized) return;
-            const key = snakeToCamel(this.id.replace("amily2_", ""));
+                    const key = snakeToCamel(this.id.replace("amily2_", ""));
             let valueToSave = this.value;
 
             if (this.id === 'amily2_preset_selector') {
@@ -1058,8 +988,7 @@ export function bindModalEvents() {
             "input.amily2.range",
             'input[type="range"][id^="amily2_"]',
             function () {
-                if (!pluginAuthStatus.authorized) return;
-                const key = snakeToCamel(this.id.replace("amily2_", ""));
+                            const key = snakeToCamel(this.id.replace("amily2_", ""));
                 const value = this.id.includes("temperature")
                     ? parseFloat(this.value)
                     : parseInt(this.value, 10);
@@ -1115,8 +1044,7 @@ export function bindModalEvents() {
         .on("change.amily2.lore_settings",
             'select[id^="amily2_lore_"], input#amily2_lore_depth_input',
             function () {
-                if (!pluginAuthStatus.authorized) return;
-				
+            				
 
 
                 let key = snakeToCamel(this.id.replace("amily2_", ""));
@@ -1143,8 +1071,7 @@ export function bindModalEvents() {
     container
         .off("click.amily2.lore_save")
         .on("click.amily2.lore_save", '#amily2_save_lore_settings', function () {
-            if (!pluginAuthStatus.authorized) return;
-
+        
             const button = $(this);
             const statusElement = $('#amily2_lore_save_status');
 
@@ -2763,7 +2690,6 @@ async function loadJqyhTavernPresets() {
 }
 
 $(document).on('change', 'input[name="amily2_icon_location"]', function() {
-    if (!pluginAuthStatus.authorized) return;
     const newLocation = $(this).val();
     extension_settings[extensionName]['iconLocation'] = newLocation;
     saveSettingsDebounced();

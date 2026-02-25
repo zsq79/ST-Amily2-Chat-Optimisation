@@ -45,81 +45,6 @@ try {
 const UPDATE_CHECK_URL =
   "https://raw.githubusercontent.com/Wx-2025/ST-Amily2-Chat-Optimisation/refs/heads/main/amily2_update_info.json";
 
-const MESSAGE_BOARD_URL =
-  "https://amilyservice.amily49.cc/amily2_message_board.json";
-const PROXIES = [
-    "https://corsproxy.io/?",
-    "https://api.allorigins.win/raw?url=",
-    "https://api.codetabs.com/v1/proxy?quest="
-];
-
-let lastMessageId = null;
- 
-export async function fetchMessageBoardContent() {
-    if (!MESSAGE_BOARD_URL) {
-        console.log('[Amily2号-内务府] 任务取消：陛下尚未配置留言板URL。');
-        return null;
-    }
-
-    const processResponse = async (response) => {
-        if (response.status === 304) {
-            console.log('[Amily2号-内务府] 留言板内容未变更 (304)。');
-            return null;
-        }
-        if (!response.ok) {
-            throw new Error(`服务器响应异常: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data && data.id) {
-            lastMessageId = data.id;
-        }
-        return data;
-    };
-
-    // 1. 尝试直连
-    try {
-        let url = MESSAGE_BOARD_URL;
-        if (lastMessageId) {
-            const separator = url.includes('?') ? '&' : '?';
-            url += `${separator}nowId=${encodeURIComponent(lastMessageId)}`;
-        }
-
-        const response = await fetch(url, { cache: 'no-store' });
-        return await processResponse(response);
-    } catch (error) {
-        console.warn('[Amily2号-内务府] 直连失败，开始尝试代理链...', error);
-    }
-
-    // 2. 尝试代理链
-    for (const proxyPrefix of PROXIES) {
-        try {
-            let targetUrl = MESSAGE_BOARD_URL;
-            if (lastMessageId) {
-                const separator = targetUrl.includes('?') ? '&' : '?';
-                targetUrl += `${separator}nowId=${encodeURIComponent(lastMessageId)}`;
-            }
-            
-            let proxyUrl;
-            // corsproxy.io 支持直接拼接，其他通常需要编码
-            if (proxyPrefix.includes('corsproxy.io')) {
-                proxyUrl = proxyPrefix + targetUrl;
-            } else {
-                proxyUrl = proxyPrefix + encodeURIComponent(targetUrl);
-            }
-
-            console.log(`[Amily2号-内务府] 尝试代理: ${proxyPrefix}`);
-            const response = await fetch(proxyUrl, { cache: 'no-store' });
-            const data = await processResponse(response);
-            console.log(`[Amily2号-内务府] 代理成功: ${proxyPrefix}`);
-            return data;
-        } catch (e) {
-            console.warn(`[Amily2号-内务府] 代理失败: ${proxyPrefix}`, e);
-        }
-    }
-
-    console.error('[Amily2号-内务府] 所有通道均已失效，无法获取留言板内容。');
-    return null;
-}
  
 export async function checkForUpdates() {
     if (!UPDATE_CHECK_URL || UPDATE_CHECK_URL.includes('YourUsername')) {
@@ -328,7 +253,7 @@ async function fetchGoogleDirectModels(apiUrl, apiKey) {
     
     const fetchGoogleModels = async (version) => {
         const url = `${GOOGLE_API_BASE_URL}/${version}/models?key=${apiKey}`;
-        console.log(`[Amily2号-使节团] 正在从 Google API (${version}) 获取模型列表: ${url}`);
+        console.log(`[Amily2号-使节团] 正在从 Google API (${version}) 获取模型列表`);
         
         const response = await fetch(url);
         if (!response.ok) {
@@ -513,11 +438,6 @@ export async function testApiConnection() {
 }
 
 export async function callAI(messages, options = {}) {
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return null;
-    }
-
     const apiSettings = getApiSettings();
 
     const finalOptions = {
@@ -546,7 +466,6 @@ export async function callAI(messages, options = {}) {
         temperature: finalOptions.temperature,
         messagesCount: messages.length
     });
-    console.log("【消息内容】:", messages);
     console.groupEnd();
 
     try {

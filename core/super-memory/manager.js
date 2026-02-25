@@ -14,13 +14,6 @@ let lastChatId = null;
 const METADATA_KEY = 'Amily2_Memory_Data';
 
 export async function initializeSuperMemory() {
-    const userType = parseInt(localStorage.getItem("plugin_user_type") || "0");
-    if (userType < 2) {
-        console.warn('[Amily2-SuperMemory] 权限不足 (Type < 2)，拒绝初始化超级记忆系统。');
-        if (window.$) $('#sm-system-status').text('未授权').css('color', 'red');
-        return;
-    }
-
     const settings = extension_settings[extensionName] || {};
     if (settings.super_memory_enabled === false) {
         console.log('[Amily2-SuperMemory] 功能已禁用 (super_memory_enabled = false)。');

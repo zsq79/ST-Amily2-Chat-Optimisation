@@ -55,11 +55,6 @@ export function getSybdApiSettings() {
 }
 
 export async function callSybdAI(messages, options = {}) {
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-Sybd制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return null;
-    }
-
     const apiSettings = getSybdApiSettings();
 
     const finalOptions = {

@@ -81,11 +81,6 @@ export async function fillWithSecondaryApi(latestMessage, forceRun = false) {
         return; 
     }
 
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return;
-    }
-
     const { apiUrl, apiKey, model, temperature, maxTokens, forceProxyForCustomApi } = settings;
     if (!apiUrl || !model) {
         if (!window.secondaryApiUrlWarned) {

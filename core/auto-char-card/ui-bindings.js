@@ -115,9 +115,6 @@ async function handleContextUpdate(type, value) {
 }
 
 function handlePromptLog(messages) {
-    const userType = localStorage.getItem("plugin_user_type");
-    if (userType !== "3") return;
-
     const timestamp = new Date().toLocaleTimeString();
     let logEntry = `\n\n--- [${timestamp}] New Request ---\n`;
     
@@ -202,13 +199,6 @@ function bindEvents() {
         const [type, id, subId] = val.split('|');
         
         if (type === 'debug' && id === 'log') {
-            const userType = localStorage.getItem("plugin_user_type");
-            if (userType !== "3") {
-                toastr.warning('权限不足：仅开发者可查看调试日志。');
-                $(this).val('');
-                return;
-            }
-
             const fileId = 'debug-prompt-log';
             openedFiles.set(fileId, {
                 title: 'Prompt Log',
@@ -1174,10 +1164,7 @@ async function loadContextToEditor() {
             selector.append(charGroup);
 
             
-            const userType = localStorage.getItem("plugin_user_type");
-            if (userType === "3") {
-                selector.append('<option value="debug|log">Debug: Prompt Log</option>');
-            }
+            selector.append('<option value="debug|log">Debug: Prompt Log</option>');
 
             
             if (openedFiles.size === 0 && char.description) {

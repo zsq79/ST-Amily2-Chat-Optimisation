@@ -101,7 +101,7 @@ export async function checkForUpdates(isManual = false, $panel) {
         if (compareVersions(latestVersion, currentVersion) > 0) {
             $updateIndicator.show();
             $updateButton
-                .html(`<i class="fa-solid fa-gift"></i> 发现新版 ${latestVersion}!`)
+                .text(`发现新版 ${latestVersion}!`).prepend('<i class="fa-solid fa-gift"></i> ')
                 .off('click')
                 .on('click', () => showUpdateConfirmDialog());
             if (isManual) showToastr('success', `发现新版本 ${latestVersion}！点击按钮进行更新。`);

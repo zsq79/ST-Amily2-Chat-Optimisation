@@ -1,6 +1,7 @@
 import { extensionName } from "../../utils/settings.js";
 import { extension_settings } from "/scripts/extensions.js";
 import { saveSettingsDebounced } from "/script.js";
+import { escapeHTML } from "../../utils/utils.js";
 import { initializeSuperMemory, purgeSuperMemory } from "./manager.js";
 import { defaultSettings as ragDefaultSettings } from "../rag-settings.js";
 import { getMemoryState } from "../table-system/manager.js";
@@ -138,18 +139,18 @@ function renderTableSettingsList() {
 
         html += `
             <div class="sm-control-block" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px;">
-                <div style="font-weight: bold; margin-bottom: 5px; color: #e0e0e0;">${tableName}</div>
+                <div style="font-weight: bold; margin-bottom: 5px; color: #e0e0e0;">${escapeHTML(tableName)}</div>
                 <div style="display: flex; justify-content: space-between;">
                     <div style="display: flex; align-items: center;">
                         <label class="sm-toggle-switch" style="transform: scale(0.8); margin-right: 5px;">
-                            <input type="checkbox" class="sm-table-setting-check" data-table="${tableName}" data-type="sync" ${isSyncEnabled ? 'checked' : ''}>
+                            <input type="checkbox" class="sm-table-setting-check" data-table="${escapeHTML(tableName)}" data-type="sync" ${isSyncEnabled ? 'checked' : ''}>
                             <span class="sm-slider"></span>
                         </label>
                         <span style="font-size: 0.9em; color: #ccc;">写入世界书</span>
                     </div>
                     <div style="display: flex; align-items: center;">
                         <label class="sm-toggle-switch" style="transform: scale(0.8); margin-right: 5px;">
-                            <input type="checkbox" class="sm-table-setting-check" data-table="${tableName}" data-type="constant" ${isConstant ? 'checked' : ''}>
+                            <input type="checkbox" class="sm-table-setting-check" data-table="${escapeHTML(tableName)}" data-type="constant" ${isConstant ? 'checked' : ''}>
                             <span class="sm-slider"></span>
                         </label>
                         <span style="font-size: 0.9em; color: #ccc;">索引绿灯(常驻)</span>

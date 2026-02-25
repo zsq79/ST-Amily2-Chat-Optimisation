@@ -367,7 +367,7 @@ async function renderWorldBookEntries() {
         
     } catch (error) {
         console.error('加载世界书条目失败:', error);
-        container.innerHTML = `<p style="text-align:center; color: #ff8a8a;">加载失败: ${error.message}</p>`;
+        container.innerHTML = `<p style="text-align:center; color: #ff8a8a;">加载失败: ${escapeHTML(error.message)}</p>`;
     }
 }
 

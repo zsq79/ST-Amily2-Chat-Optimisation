@@ -55,11 +55,6 @@ export function getNccsApiSettings() {
 // =================================================================================================
 
 export async function callNccsAI(messages, options = {}) {
-    if (window.AMILY2_SYSTEM_PARALYZED === true) {
-        console.error("[Amily2-Nccs制裁] 系统完整性已受损，所有外交活动被无限期中止。");
-        return null;
-    }
-
     const settings = getNccsApiSettings();
     const finalOptions = {
         ...settings,

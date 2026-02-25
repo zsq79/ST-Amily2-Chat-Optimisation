@@ -1,6 +1,5 @@
 import { extension_settings } from "/scripts/extensions.js"; 
 import { saveSettingsDebounced } from "/script.js";      
-import { pluginAuthStatus } from "./auth.js";
 
 export const extensionName = "ST-Amily2-Chat-Optimisation";
 export const pluginVersion = "1.4.5";
@@ -1001,8 +1000,6 @@ export function validateSettings() {
 }
 
 export function saveSettings() {
-  if (!pluginAuthStatus.authorized) return false;
-
   const validationErrors = validateSettings();
 
   if (validationErrors) {

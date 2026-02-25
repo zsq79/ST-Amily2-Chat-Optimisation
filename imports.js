@@ -23,10 +23,9 @@ export { loadTables, clearHighlights, rollbackAndRefill, rollbackState, commitPe
 export { fillWithSecondaryApi } from './core/table-system/secondary-filler.js';
 export { renderTables } from './ui/table-bindings.js';
 export { log } from './core/table-system/logger.js';
-export { checkForUpdates, fetchMessageBoardContent } from './core/api.js';
+export { checkForUpdates } from './core/api.js';
 export { setUpdateInfo, applyUpdateIndicator } from './ui/state.js';
 export { pluginVersion, extensionName, defaultSettings } from './utils/settings.js';
-export { checkAuthorization, refreshUserInfo } from './utils/auth.js';
 export { tableSystemDefaultSettings } from './core/table-system/settings.js';
 export { manageLorebookEntriesForChat } from './core/lore.js';
 

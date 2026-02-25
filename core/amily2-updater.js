@@ -180,7 +180,7 @@ class Amily2Updater {
             $updateButton.attr('title', `发现新版本 ${this.latestVersion}！点击查看详情`);
             $updateButtonNew
                 .show()
-                .html(`<i class="fas fa-gift"></i> 新版 ${this.latestVersion}`)
+                .text(`新版 ${this.latestVersion}`).prepend('<i class="fas fa-gift"></i> ')
                 .off('click')
                 .on('click', () => this.showUpdateConfirmDialog());
         } else {
